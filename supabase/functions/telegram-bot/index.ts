@@ -15,8 +15,8 @@ serve(async (req) => {
   }
 
   try {
-    const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN_HELLO') || Deno.env.get('TELEGRAM_BOT_TOKEN');
-    if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN_HELLO or TELEGRAM_BOT_TOKEN not configured');
+    const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN_SS') || Deno.env.get('TELEGRAM_BOT_TOKEN_HELLO') || Deno.env.get('TELEGRAM_BOT_TOKEN');
+    if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN_SS not configured');
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -155,6 +155,7 @@ serve(async (req) => {
       inline_keyboard: [
         [{ text: 'Add Nova task', callback_data: 'adm_add' }],
         [{ text: 'Nova tasks', callback_data: 'adm_tasks' }],
+        [{ text: 'Delete all tasks', callback_data: 'adm_delall' }],
         [{ text: 'Refresh stats', callback_data: 'adm_stats' }],
       ],
     };
@@ -180,6 +181,7 @@ serve(async (req) => {
             { text: `Delete ${i + 1}`, callback_data: `adm_del:${t.id}` },
           ]),
           [{ text: 'Add Nova task', callback_data: 'adm_add' }],
+          [{ text: 'Delete all tasks', callback_data: 'adm_delall' }],
         ],
       };
       return { text: `<b>Nova Tasks</b>\n\n${text}`, markup };
@@ -188,10 +190,11 @@ serve(async (req) => {
     const cancelRow = [{ text: 'Cancel', callback_data: 'adm_cancel' }];
 
     const draftSummary = (d: any) =>
-      `<b>New Nova Task</b>\n\n` +
-      `Title: ${d.title || '-'}\n` +
-      `Link: ${d.link || 'none'}\n` +
-      `Reward: ${d.reward ?? '-'} ${(d.rewardType || '').toUpperCase()}`;
+      `<b>New Task</b>\n\n` +
+      `1. Name: ${d.title || '-'}\n` +
+      `2. Link: ${d.link || (d.step === 'link' || d.step === 'title' ? '-' : 'none')}\n` +
+      `3. Image: ${d.image ? 'added' : (d.step === 'image' || d.step === 'link' || d.step === 'title' ? '-' : 'none')}\n` +
+      `Reward: ${d.reward ?? '-'} ${(d.rewardType === 'siri' ? 'NOVA' : (d.rewardType || '')).toUpperCase()}`;
 
     const askStep = async (chat: number, d: any) => {
       if (d.step === 'title') {
