@@ -22,7 +22,7 @@ const BottomNav = () => {
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.6rem)] pt-2"
         >
-          <div className="mx-auto flex max-w-sm items-center justify-between gap-1 rounded-[26px] border border-white/12 bg-[rgba(18,26,24,0.72)] px-2 py-2 backdrop-blur-2xl shadow-[0_20px_44px_-24px_rgba(0,0,0,0.9)]">
+          <div className="liquid-glass mx-auto flex max-w-sm items-center justify-between gap-1 rounded-full px-2 py-2">
             {navItems.map((item) => {
               const isActive =
                 location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
