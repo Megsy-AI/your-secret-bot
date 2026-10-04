@@ -679,6 +679,45 @@ const CHANNEL_POSTS = [
   { topic: "referral", img: 2, title: "INVITE FRIENDS, EARN MORE", lines: ["Share your personal link with friends.", "Every friend who joins increases your rewards."] },
   { topic: "tasks", img: 3, title: "COMPLETE TASKS, GET REWARDED", lines: ["New missions are added to the app every day.", "Finish them and claim your rewards instantly."] },
 ];
+const ASTRO_SCENES = [
+  "an astronaut drilling glowing purple crystals on a dark volcanic planet",
+  "an astronaut floating beside a giant dark ringed planet, holding a glowing coin",
+  "two astronauts planting a NOVA flag on a black moon with a violet nebula behind",
+  "an astronaut riding a small rover across a dark red desert planet under two moons",
+  "an astronaut repairing a satellite in orbit above a deep indigo gas giant",
+  "an astronaut sitting on a cliff edge looking at a dark planet eclipse with a purple halo",
+  "an astronaut piloting a sleek spaceship through an asteroid field near a dark blue planet",
+  "an astronaut carrying a glowing energy cube inside a futuristic mining base on a dark moon",
+  "a team of astronauts high-fiving next to a mining machine on a black icy planet",
+  "an astronaut surfing a beam of light between two dark planets in deep space",
+  "an astronaut exploring a cave of glowing violet crystals on a dark alien world",
+  "an astronaut waving from the window of a space station orbiting a shadowed planet",
+  "an astronaut jumping in low gravity over craters on a dark grey moon with stars",
+  "an astronaut launching a small rocket from a dark planet surface toward a purple galaxy",
+];
+async function generateDailyImage(supabase: any, title: string, scene: string, today: string): Promise<string | null> {
+  const key = Deno.env.get("LOVABLE_API_KEY");
+  if (!key) return null;
+  try {
+    const prompt = `Cinematic 16:9 poster, dark cosmic scene: ${scene}. Dark planets, deep purple and navy space, soft rim lighting, high detail 3D render style. On the left side, large clean bold white sans-serif text that reads exactly "${title}" and below it smaller text "NOVA". No other text, no emojis, no icons, no logos, no watermark.`;
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-2.5-flash-image-preview", messages: [{ role: "user", content: prompt }], modalities: ["image", "text"] }),
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const url: string | undefined = j?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!url?.startsWith("data:")) return null;
+    const [meta, b64] = url.split(",");
+    const mime = meta.slice(5).split(";")[0] || "image/png";
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const path = `channel-posts/daily-${today}-${Date.now()}.${mime.includes("jpeg") ? "jpg" : "png"}`;
+    const { error } = await supabase.storage.from("ads-tasks").upload(path, bytes, { contentType: mime, upsert: true });
+    if (error) return null;
+    return supabase.storage.from("ads-tasks").getPublicUrl(path).data.publicUrl;
+  } catch { return null; }
+}
 async function runChannelPost(supabase: any, BASE_URL: string, force = false) {
   const today = new Date().toISOString().slice(0, 10);
   if (!force) {
@@ -686,7 +725,10 @@ async function runChannelPost(supabase: any, BASE_URL: string, force = false) {
     if (ex && ex.length) return { ok: true, skipped: "already_posted" };
   }
   const day = Math.floor(Date.now() / 86400_000);
-  const p = CHANNEL_POSTS[day % CHANNEL_POSTS.length];
+  const base = CHANNEL_POSTS[day % CHANNEL_POSTS.length];
+  const scene = ASTRO_SCENES[day % ASTRO_SCENES.length];
+  const genImg = await generateDailyImage(supabase, base.title, scene, today);
+  const p = { ...base, photo: genImg || POST_IMG(base.img) };
   const caption = `<b>${p.title}</b>\n\n${p.lines.join("\n")}\n\n<b>Open the app and start now.</b>`;
   const reply_markup = { inline_keyboard: [[{ text: "Open App", url: APP_URL }]] };
   let res = await fetch(`${BASE_URL}/sendPhoto`, {
