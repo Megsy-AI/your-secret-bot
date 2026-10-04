@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import webmVideo from "@/assets/bg-loop.webm.asset.json";
 
 /** Global fullscreen video background shared by every page (dark hero style). */
 const StarryBackground = () => {
@@ -10,9 +11,7 @@ const StarryBackground = () => {
     v.muted = true;
     // Telegram's WebView can report HLS support without actually decoding the
     // stream. Use the bundled MP4 directly and keep its poster visible until play.
-    v.src = "/bg-loop.mp4";
     v.setAttribute("webkit-playsinline", "true");
-    v.load();
     const play = () => void v.play().catch(() => undefined);
     play();
     document.addEventListener("touchstart", play, { once: true });
@@ -38,7 +37,10 @@ const StarryBackground = () => {
         preload="auto"
         disablePictureInPicture
         className="absolute inset-0 h-full w-full object-cover"
-      />
+      >
+        <source src="/bg-loop.mp4" type="video/mp4" />
+        <source src={webmVideo.url} type="video/webm" />
+      </video>
       <div className="absolute inset-0 bg-background/20" />
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/80 to-transparent" />
     </div>
