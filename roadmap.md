@@ -20,3 +20,6 @@
 - [x] Dark hero landing for browser visitors (inside Telegram the app opens)
 - [ ] First channel post: blocked, bot must be added as admin of channel -1002616088306
 - [ ] Vercel deploy: not possible (Lovable project targets Lovable publishing); token not used
+- [x] Undo browser-only landing; dark video + glass style applied to every page in the app
+- [x] New bot token (TELEGRAM_BOT_TOKEN_SS) + webhook set; /start and /101 admin live
+- [x] Daily post: new AI astronaut/dark-planet image every day (14 rotating scenes); first post sent (msg 332)
