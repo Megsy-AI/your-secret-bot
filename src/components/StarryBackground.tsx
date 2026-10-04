@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
-import Hls from "hls.js";
-
-const VIDEO_SRC = "https://stream.mux.com/kimF2ha9zLrX64H00UgLGPflCzNtl1T0215MlAmeOztv8.m3u8";
+import webmVideo from "@/assets/bg-loop.webm.asset.json";
 
 /** Global fullscreen video background shared by every page (dark hero style). */
 const StarryBackground = () => {
@@ -11,24 +9,9 @@ const StarryBackground = () => {
     const v = ref.current;
     if (!v) return;
     v.muted = true;
-    let hls: Hls | null = null;
-    if (v.canPlayType("application/vnd.apple.mpegurl")) {
-      v.src = VIDEO_SRC;
-    } else if (Hls.isSupported()) {
-      hls = new Hls({ capLevelToPlayerSize: true });
-      hls.loadSource(VIDEO_SRC);
-      hls.attachMedia(v);
-      hls.on(Hls.Events.ERROR, (_e, d) => {
-        if (d.fatal) {
-          hls?.destroy();
-          hls = null;
-          v.src = "/bg-loop.mp4";
-          void v.play().catch(() => undefined);
-        }
-      });
-    } else {
-      v.src = "/bg-loop.mp4";
-    }
+    // Telegram's WebView can report HLS support without actually decoding the
+    // stream. Use the bundled MP4 directly and keep its poster visible until play.
+    v.setAttribute("webkit-playsinline", "true");
     const play = () => void v.play().catch(() => undefined);
     play();
     document.addEventListener("touchstart", play, { once: true });
@@ -36,7 +19,6 @@ const StarryBackground = () => {
     const onVisibility = () => (document.hidden ? v.pause() : play());
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      hls?.destroy();
       document.removeEventListener("touchstart", play);
       document.removeEventListener("click", play);
       document.removeEventListener("visibilitychange", onVisibility);
@@ -51,9 +33,14 @@ const StarryBackground = () => {
         loop
         muted
         playsInline
+        poster="/images/bg-poster.jpg"
+        preload="auto"
         disablePictureInPicture
         className="absolute inset-0 h-full w-full object-cover"
-      />
+      >
+        <source src="/bg-loop.mp4" type="video/mp4" />
+        <source src={webmVideo.url} type="video/webm" />
+      </video>
       <div className="absolute inset-0 bg-background/20" />
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/80 to-transparent" />
     </div>

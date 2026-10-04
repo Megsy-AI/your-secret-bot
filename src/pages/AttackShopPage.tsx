@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { PaymentError, sendTonPayment } from "@/lib/ton";
 import { usePaymentDiscount } from "@/hooks/use-payment-discount";
 import DiscountBanner from "@/components/DiscountBanner";
 
-const TON_ICON = "/images/gram-icon.png";
+const TON_ICON = GRAM_ICON;
 
 const CATEGORY_ICONS: Record<BattleCategory, typeof Sword> = {
   attack: Sword, power: Zap, boost: Shield, spell: Flame, combo: Package, defense: ShieldCheck,

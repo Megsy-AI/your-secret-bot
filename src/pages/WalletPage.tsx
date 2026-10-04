@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import SpotlightHero from "@/components/hero/SpotlightHero";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -17,7 +18,7 @@ import { useCoinPrices, formatUsd } from "@/hooks/use-coin-prices";
 const NOVA_ICON = "/images/nova-icon.jpg";
 
 
-const TON_ICON = "/images/gram-icon.png";
+const TON_ICON = GRAM_ICON;
 const USDT_ICON = "/images/usdt.png";
 const VERIFY_AMOUNT = 3;
 const NFT_MIN_GRAM = 4;

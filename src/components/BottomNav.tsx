@@ -1,14 +1,14 @@
-import { Pickaxe, Coins, CircleCheckBig, Gem, Wallet } from "lucide-react";
+import { Pickaxe, ChartNoAxesCombined, ClipboardCheck, Boxes, WalletCards } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", icon: Pickaxe, label: "Mine" },
-  { to: "/games", icon: Coins, label: "Staking" },
-  { to: "/tasks", icon: CircleCheckBig, label: "Tasks" },
-  { to: "/servers", icon: Gem, label: "NFT" },
-  { to: "/wallet", icon: Wallet, label: "Wallet" },
+  { to: "/games", icon: ChartNoAxesCombined, label: "Staking" },
+  { to: "/tasks", icon: ClipboardCheck, label: "Tasks" },
+  { to: "/servers", icon: Boxes, label: "NFT" },
+  { to: "/wallet", icon: WalletCards, label: "Wallet" },
 ];
 
 const BottomNav = () => {
@@ -45,21 +45,21 @@ const BottomNav = () => {
                   {isActive && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute inset-0 rounded-[20px] bg-white/10"
+                       className="absolute inset-0 rounded-[20px] bg-foreground/10"
                       transition={{ type: "spring", stiffness: 480, damping: 40 }}
                     />
                   )}
                   <item.icon
                     className={cn(
                       "relative h-[19px] w-[19px] shrink-0 transition-colors duration-200",
-                      isActive ? "text-white" : "text-white/45",
+                       isActive ? "text-foreground" : "text-muted-foreground",
                     )}
                     strokeWidth={isActive ? 2.2 : 1.7}
                   />
                   <span
                     className={cn(
                       "relative text-[10px] font-medium tracking-tight transition-colors duration-200",
-                      isActive ? "text-white" : "text-white/45",
+                       isActive ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
                     {item.label}

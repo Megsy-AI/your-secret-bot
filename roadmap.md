@@ -14,6 +14,8 @@
 - [ ] SUPERSEDES character/pink-blue: all post images + /start image in ASTRONAUT style (purple cosmic, reference IMG_20261004_062717_727.jpg), English bold text, no emojis; host in public bucket ads-tasks (user-images bucket does not exist -> fix uploadTelegramImage + store_image to use ads-tasks)
 
 ## Status
+- [x] Remove "OPEN SOURCE DATA" label; use uploaded purple Gram symbol throughout; refresh bottom navigation symbols
+- [x] Restore moving background inside Telegram with local MP4, WebM fallback, and visible poster
 - [x] Prize removed (UI, DB, bot); tasks redesigned with images; /101 admin flow + delete-all
 - [x] Astronaut images hosted in ads-tasks (p1-p3 + welcome-start); bot uses ads-tasks
 - [x] Notifications every ~7h (03:00, 10:00, 17:00 UTC); old broken daily cron removed

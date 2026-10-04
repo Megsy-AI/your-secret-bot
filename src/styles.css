@@ -911,7 +911,13 @@ button.mining-active-btn::after {
   --shadow-glass: inset 0 1px 1px hsl(0 0% 100% / 0.1);
   --gradient-primary: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 70%));
 }
-.liquid-bg { background: hsl(var(--background)); }
+.liquid-bg {
+  background: hsl(var(--background)) url('/images/bg-poster.jpg') center / cover no-repeat;
+  min-height: 100vh;
+  min-height: 100dvh;
+  transform: translateZ(0);
+}
+.liquid-bg video { opacity: 1; }
 h1, h2, h3, .font-display, .hero-title {
   font-family: 'Instrument Serif', serif !important;
   font-weight: 400 !important;
