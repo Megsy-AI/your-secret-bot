@@ -64,6 +64,14 @@ serve(async (req) => {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      if (body?.delete_message_id) {
+        const d = await fetch(`${BASE_URL}/deleteMessage`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: CHANNEL_ID, message_id: Number(body.delete_message_id) }),
+        });
+        await supabase.from('daily_posts').delete().eq('telegram_message_id', Number(body.delete_message_id));
+        return new Response(JSON.stringify(await d.json()), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
       const result = await runChannelPost(supabase, BASE_URL, body?.force === true);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -80,14 +88,14 @@ serve(async (req) => {
       const bytes = Uint8Array.from(atob(String(body?.data_base64 ?? '')), (c) => c.charCodeAt(0));
       const path = String(body?.name ?? `nova/${Date.now()}.jpg`);
       const { error: upErr } = await supabase.storage
-        .from('user-images')
+        .from('ads-tasks')
         .upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
       if (upErr) {
-        return new Response(JSON.stringify({ error: upErr.message }), {
+        return new Response(JSON.stringify({ error: upErr.message, host: new URL(Deno.env.get('SUPABASE_URL')!).host }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const { data: pub } = supabase.storage.from('user-images').getPublicUrl(path);
+      const { data: pub } = supabase.storage.from('ads-tasks').getPublicUrl(path);
       return new Response(JSON.stringify({ ok: true, url: pub.publicUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -315,12 +323,12 @@ serve(async (req) => {
         const ext = (filePath.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
         const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
         const path = `tasks/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error } = await supabase.storage.from('user-images').upload(path, bytes, { contentType, upsert: true });
+        const { error } = await supabase.storage.from('ads-tasks').upload(path, bytes, { contentType, upsert: true });
         if (error) {
           console.error('task image upload failed', error);
           return null;
         }
-        return supabase.storage.from('user-images').getPublicUrl(path).data.publicUrl;
+        return supabase.storage.from('ads-tasks').getPublicUrl(path).data.publicUrl;
       } catch (e) {
         console.error('uploadTelegramImage error', e);
         return null;
@@ -546,7 +554,7 @@ serve(async (req) => {
         }
 
         // Get welcome image from admin config (falls back to default Nova banner)
-        const DEFAULT_WELCOME_IMAGE = 'https://ltgampdtawuefwwayncx.supabase.co/storage/v1/object/public/user-images/nova/welcome-start.jpg';
+        const DEFAULT_WELCOME_IMAGE = 'https://iqosbhbbyzqozfgpthyj.supabase.co/storage/v1/object/public/ads-tasks/nova/welcome-start.jpg';
         let welcomeImageUrl = DEFAULT_WELCOME_IMAGE;
         try {
           const { data: adminConfig } = await supabase
@@ -665,7 +673,7 @@ serve(async (req) => {
 
 // ── Daily channel post (03:00 UTC, once per day) ────────────────────────────
 const CHANNEL_ID = -1002616088306;
-const POST_IMG = (n: number) => `https://iqosbhbbyzqozfgpthyj.supabase.co/storage/v1/object/public/user-images/channel-posts/p${n}.jpg`;
+const POST_IMG = (n: number) => `https://iqosbhbbyzqozfgpthyj.supabase.co/storage/v1/object/public/ads-tasks/channel-posts/p${n}.jpg`;
 const CHANNEL_POSTS = [
   { topic: "mining", img: 1, title: "MINE EVERY 8 HOURS", lines: ["Start a mining session and collect your rewards.", "One tap. Every 8 hours. No equipment needed."] },
   { topic: "referral", img: 2, title: "INVITE FRIENDS, EARN MORE", lines: ["Share your personal link with friends.", "Every friend who joins increases your rewards."] },
