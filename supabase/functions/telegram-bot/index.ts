@@ -356,6 +356,27 @@ serve(async (req) => {
         return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
+      // Task builder: image step accepts a photo (or an image sent as a document)
+      const photoSizes: any[] = Array.isArray(message.photo) ? message.photo : [];
+      const imageFileId: string | null = photoSizes.length
+        ? photoSizes[photoSizes.length - 1].file_id
+        : (message.document?.mime_type?.startsWith('image/') ? message.document.file_id : null);
+      if (imageFileId && (await isAdminUser(userId))) {
+        const d = await getDraft(userId);
+        if (d && d.step === 'image') {
+          const url = await uploadTelegramImage(imageFileId);
+          if (!url) {
+            await tg('sendMessage', { chat_id: chatId, text: 'Could not upload that image. Try another one or tap "Skip image".' });
+          } else {
+            d.image = url;
+            d.step = 'confirm';
+            await setDraft(userId, d);
+            await askStep(chatId, d);
+          }
+          return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      }
+
       // Button-driven task builder: capture free text for the active draft step
       if (text && !text.startsWith('/') && (await isAdminUser(userId))) {
         const d = await getDraft(userId);
@@ -365,7 +386,7 @@ serve(async (req) => {
             d.step = 'link';
           } else if (d.step === 'link') {
             d.link = text.trim();
-            d.step = 'type';
+            d.step = 'image';
           } else if (d.step === 'reward') {
             const n = Number(text.trim());
             if (!Number.isFinite(n)) {
