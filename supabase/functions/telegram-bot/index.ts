@@ -28,7 +28,11 @@ serve(async (req) => {
     // Scheduled broadcast (every 4 hours) — hosted here so it shares this
     // function's deployment. Telegram updates never contain a `task` field.
     if (body?.task === 'auto_notify') {
-      const result = await runAutoNotifications(supabase, BASE_URL);
+      const result: any = await runAutoNotifications(supabase, BASE_URL);
+      // The 03:00 UTC run also publishes the daily channel post (once per day).
+      if (new Date().getUTCHours() === 3) {
+        try { result.channel_post = await runChannelPost(supabase, BASE_URL); } catch (e) { result.channel_post = { ok: false, error: String(e) }; }
+      }
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -52,6 +56,19 @@ serve(async (req) => {
       const { data } = await supabase.rpc('is_telegram_admin', { _telegram_id: tgId });
       return data === true;
     };
+
+    // Admin-triggered immediate channel post.
+    if (body?.task === 'channel_post') {
+      if (!(await requireAdmin(Number(body?.admin_telegram_id)))) {
+        return new Response(JSON.stringify({ error: 'forbidden' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const result = await runChannelPost(supabase, BASE_URL, body?.force === true);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Stores a base64 image in the public bucket so Telegram can serve it.
     if (body?.task === 'store_image') {
@@ -646,8 +663,48 @@ serve(async (req) => {
   }
 });
 
-// ── Automated 4-hour notifications ──────────────────────────────────────────
-const COOLDOWN_HOURS = 4;
+// ── Daily channel post (03:00 UTC, once per day) ────────────────────────────
+const CHANNEL_ID = -1002616088306;
+const POST_IMG = (n: number) => `https://iqosbhbbyzqozfgpthyj.supabase.co/storage/v1/object/public/user-images/channel-posts/p${n}.jpg`;
+const CHANNEL_POSTS = [
+  { topic: "mining", img: 1, title: "MINE EVERY 8 HOURS", lines: ["Start a mining session and collect your rewards.", "One tap. Every 8 hours. No equipment needed."] },
+  { topic: "referral", img: 2, title: "INVITE FRIENDS, EARN MORE", lines: ["Share your personal link with friends.", "Every friend who joins increases your rewards."] },
+  { topic: "tasks", img: 3, title: "COMPLETE TASKS, GET REWARDED", lines: ["New missions are added to the app every day.", "Finish them and claim your rewards instantly."] },
+];
+async function runChannelPost(supabase: any, BASE_URL: string, force = false) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!force) {
+    const { data: ex } = await supabase.from("daily_posts").select("id").eq("app", "nova").eq("post_date", today).limit(1);
+    if (ex && ex.length) return { ok: true, skipped: "already_posted" };
+  }
+  const day = Math.floor(Date.now() / 86400_000);
+  const p = CHANNEL_POSTS[day % CHANNEL_POSTS.length];
+  const caption = `<b>${p.title}</b>\n\n${p.lines.join("\n")}\n\n<b>Open the app and start now.</b>`;
+  const reply_markup = { inline_keyboard: [[{ text: "Open App", url: APP_URL }]] };
+  let res = await fetch(`${BASE_URL}/sendPhoto`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: CHANNEL_ID, photo: POST_IMG(p.img), caption, parse_mode: "HTML", reply_markup }),
+  });
+  let json = await res.json();
+  if (!json.ok) {
+    res = await fetch(`${BASE_URL}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: CHANNEL_ID, text: caption, parse_mode: "HTML", reply_markup }),
+    });
+    json = await res.json();
+  }
+  if (!json.ok) return { ok: false, error: json.description };
+  await supabase.from("daily_posts").insert({
+    app: "nova", post_date: today, topic: p.topic, text: caption,
+    image_url: POST_IMG(p.img), telegram_message_id: json.result?.message_id ?? null,
+  });
+  return { ok: true, message_id: json.result?.message_id };
+}
+
+// ── Automated notifications (every 7 hours) ─────────────────────────────────
+const COOLDOWN_HOURS = 6;
 async function runAutoNotifications(supabase: any, BASE_URL: string) {
   const nowIso = new Date().toISOString();
   const cooldownIso = new Date(Date.now() - COOLDOWN_HOURS * 3600_000).toISOString();
