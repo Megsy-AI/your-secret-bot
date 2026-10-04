@@ -76,50 +76,6 @@ serve(async (req) => {
       });
     }
 
-    // Admin preview: sends the prize message to one chat for visual review.
-    if (body?.task === 'prize_preview') {
-      const tgId = Number(body?.admin_telegram_id);
-      if (!(await requireAdmin(tgId))) {
-        return new Response(JSON.stringify({ error: 'forbidden' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const ok = await sendPrizeMessage(BASE_URL, tgId, String(body?.name ?? 'Player'));
-      return new Response(JSON.stringify({ ok, image: PRIZE_IMAGE_URL }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // One-off backfill: grants the prize to existing players and messages them.
-    if (body?.task === 'prize_broadcast') {
-      if (!(await requireAdmin(Number(body?.admin_telegram_id)))) {
-        return new Response(JSON.stringify({ error: 'forbidden' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const result = await runPrizeBroadcast(supabase, BASE_URL, Number(body?.limit ?? 3000));
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Recurring broadcast (every 4 hours, triggered by cron): re-grants the
-    // $10,000 prize to EVERY player and opens a new announcement round.
-    if (body?.task === 'prize_broadcast_all') {
-      const result = await startPrizeRound(supabase);
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Worker (cron, every minute): sends the win message to the next slice of
-    // players in the open round. Keeps each invocation inside worker limits.
-    if (body?.task === 'prize_broadcast_send') {
-      const result = await runPrizeBroadcast(supabase, BASE_URL, Number(body?.limit ?? 300));
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
 
 
@@ -293,14 +249,62 @@ serve(async (req) => {
           },
         });
       }
+      if (d.step === 'image') {
+        return tg('sendMessage', {
+          chat_id: chat,
+          text: `${draftSummary(d)}\n\nSend the task image as a photo, or tap "Skip image".`,
+          parse_mode: 'HTML',
+          reply_markup: { inline_keyboard: [[{ text: 'Skip image', callback_data: 'adm_img_none' }], cancelRow] },
+        });
+      }
+      const confirmText = `${draftSummary(d)}\n\nSave this task?`;
+      const confirmMarkup = {
+        inline_keyboard: [
+          [{ text: 'Save task', callback_data: 'adm_save' }],
+          [{ text: 'Change reward', callback_data: 'adm_reward' }],
+          cancelRow,
+        ],
+      };
+      if (d.image) {
+        const r = await tg('sendPhoto', {
+          chat_id: chat,
+          photo: d.image,
+          caption: confirmText,
+          parse_mode: 'HTML',
+          reply_markup: confirmMarkup,
+        });
+        if (r?.ok) return r;
+      }
       return tg('sendMessage', {
         chat_id: chat,
-        text: `${draftSummary(d)}\n\nSave this Nova task?`,
+        text: confirmText,
         parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [[{ text: 'Save task', callback_data: 'adm_save' }], cancelRow],
-        },
+        reply_markup: confirmMarkup,
       });
+    };
+
+    // Downloads a Telegram file and stores it in the public bucket; returns its public URL.
+    const uploadTelegramImage = async (fileId: string): Promise<string | null> => {
+      try {
+        const info = await tg('getFile', { file_id: fileId });
+        const filePath: string | undefined = info?.result?.file_path;
+        if (!filePath) return null;
+        const res = await fetch(`https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${filePath}`);
+        if (!res.ok) return null;
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        const ext = (filePath.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        const path = `tasks/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from('user-images').upload(path, bytes, { contentType, upsert: true });
+        if (error) {
+          console.error('task image upload failed', error);
+          return null;
+        }
+        return supabase.storage.from('user-images').getPublicUrl(path).data.publicUrl;
+      } catch (e) {
+        console.error('uploadTelegramImage error', e);
+        return null;
+      }
     };
 
     const saveDraft = async (chat: number, tgId: number, d: any) => {
@@ -312,6 +316,7 @@ serve(async (req) => {
         task_type: d.link ? 'link' : 'custom',
         verification_type: 'auto',
         is_active: true,
+        image_url: d.image || null,
       });
       await clearDraft(tgId);
       await tg('sendMessage', {
@@ -334,7 +339,7 @@ serve(async (req) => {
           const l = await listTasks();
           await tg('sendMessage', { chat_id: cqChat, text: l.text, parse_mode: 'HTML', reply_markup: l.markup });
         } else if (data === 'adm_add') {
-          const d = { step: 'title', title: '', link: '', rewardType: '', reward: null };
+          const d = { step: 'title', title: '', link: '', image: '', rewardType: 'siri', reward: 100 };
           await setDraft(cqUser, d);
           await askStep(cqChat, d);
         } else if (data === 'adm_cancel') {
@@ -343,6 +348,17 @@ serve(async (req) => {
         } else if (data === 'adm_link_none') {
           const d = (await getDraft(cqUser)) || {};
           d.link = '';
+          d.step = 'image';
+          await setDraft(cqUser, d);
+          await askStep(cqChat, d);
+        } else if (data === 'adm_img_none') {
+          const d = (await getDraft(cqUser)) || {};
+          d.image = '';
+          d.step = 'confirm';
+          await setDraft(cqUser, d);
+          await askStep(cqChat, d);
+        } else if (data === 'adm_reward') {
+          const d = (await getDraft(cqUser)) || {};
           d.step = 'type';
           await setDraft(cqUser, d);
           await askStep(cqChat, d);
@@ -365,7 +381,18 @@ serve(async (req) => {
         } else if (data.startsWith('adm_del:')) {
           const id = data.slice(8);
           const { error } = await supabase.from('tasks').delete().eq('id', id);
-          await tg('sendMessage', { chat_id: cqChat, text: error ? `Delete failed: ${error.message}` : 'Nova task deleted.', reply_markup: adminKeyboard });
+          await tg('sendMessage', { chat_id: cqChat, text: error ? `Delete failed: ${error.message}` : 'Task deleted.', reply_markup: adminKeyboard });
+        } else if (data === 'adm_delall') {
+          await tg('sendMessage', {
+            chat_id: cqChat,
+            text: '<b>Delete ALL tasks?</b>\n\nThis removes every task and cannot be undone.',
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: [[{ text: 'Yes, delete all', callback_data: 'adm_delall_yes' }], cancelRow] },
+          });
+        } else if (data === 'adm_delall_yes') {
+          await supabase.from('user_tasks').delete().gte('completed_at', '1970-01-01');
+          const { error } = await supabase.from('tasks').delete().gte('created_at', '1970-01-01');
+          await tg('sendMessage', { chat_id: cqChat, text: error ? `Delete failed: ${error.message}` : 'All tasks deleted.', reply_markup: adminKeyboard });
         }
       }
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
@@ -400,6 +427,27 @@ serve(async (req) => {
         return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
+      // Task builder: image step accepts a photo (or an image sent as a document)
+      const photoSizes: any[] = Array.isArray(message.photo) ? message.photo : [];
+      const imageFileId: string | null = photoSizes.length
+        ? photoSizes[photoSizes.length - 1].file_id
+        : (message.document?.mime_type?.startsWith('image/') ? message.document.file_id : null);
+      if (imageFileId && (await isAdminUser(userId))) {
+        const d = await getDraft(userId);
+        if (d && d.step === 'image') {
+          const url = await uploadTelegramImage(imageFileId);
+          if (!url) {
+            await tg('sendMessage', { chat_id: chatId, text: 'Could not upload that image. Try another one or tap "Skip image".' });
+          } else {
+            d.image = url;
+            d.step = 'confirm';
+            await setDraft(userId, d);
+            await askStep(chatId, d);
+          }
+          return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      }
+
       // Button-driven task builder: capture free text for the active draft step
       if (text && !text.startsWith('/') && (await isAdminUser(userId))) {
         const d = await getDraft(userId);
@@ -409,7 +457,7 @@ serve(async (req) => {
             d.step = 'link';
           } else if (d.step === 'link') {
             d.link = text.trim();
-            d.step = 'type';
+            d.step = 'image';
           } else if (d.step === 'reward') {
             const n = Number(text.trim());
             if (!Number.isFinite(n)) {
@@ -532,15 +580,6 @@ serve(async (req) => {
           console.error("Failed to send welcome:", sendError);
         }
 
-        // Every player gets the $10,000 prize once, live for 48 hours.
-        try {
-          const { data: prize } = await supabase.rpc('grant_welcome_prize', { _telegram_id: userId });
-          if (prize?.granted) {
-            await sendPrizeMessage(BASE_URL, chatId, firstName);
-          }
-        } catch (prizeError) {
-          console.error("Failed to grant welcome prize:", prizeError);
-        }
 
         return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
@@ -587,97 +626,6 @@ serve(async (req) => {
       // All TON payments are verified by the `verify-ton-transaction` function,
       // which matches the unique per-payment memo and marks the intent as used.
 
-      case 'prizeBroadcast': {
-        const PRIZE_IMAGE =
-          'https://f7ebd660-aa64-45d5-8e89-2003f4b0bb3e.lovableproject.com/__l5e/assets-v1/d72c7d9e-0f0d-4e37-b64c-e43ce02b4b8e/prize-banner-monthly.jpg';
-        // Rotating captions so the recurring broadcast never repeats itself.
-        const CAPTIONS = [
-          'Good news: the issue is fixed ✅\n\nThere was a technical error that stopped some players from seeing their reward. It has been fixed, and you can now claim your prize.\n\nYour Monthly Prize: $10,000 USDT\nBrought to you by the Nova × Google × Alibaba partnership.\n\nYou have a 72 hour window to claim it.',
-          'Your $10,000 Monthly Prize is ready 🎉\n\nCelebrating the new partnership between Nova, Google and Alibaba.\nThe earlier display error is fixed for every player, old and new.\n\nOpen the app and withdraw before the 72 hour countdown ends.',
-          'Reminder: $10,000 USDT is waiting for you 💚\n\nThe Nova × Google × Alibaba Monthly Prize has been credited to your balance.\nUnclaimed rewards are removed automatically when the countdown hits zero.\n\nTap below to claim yours now.',
-          'Final stretch ⏳\n\nYour Monthly Prize of $10,000 USDT — powered by the Nova, Google and Alibaba partnership — is still unclaimed.\nEverything works correctly now, so nothing stands between you and your reward.\n\nClaim it inside the app today.',
-        ];
-        const CAPTION =
-          typeof body.caption === 'string' && body.caption.trim()
-            ? body.caption
-            : CAPTIONS[
-                typeof body.variant === 'number'
-                  ? Math.abs(Math.floor(body.variant)) % CAPTIONS.length
-                  : Math.floor(Date.now() / (4 * 60 * 60 * 1000)) % CAPTIONS.length
-              ];
-        const markup = { inline_keyboard: [[{ text: 'Claim $10,000 Prize', url: APP_URL }]] };
-
-        let targets: number[] = [];
-        if (body.telegram_id) {
-          targets = [Number(body.telegram_id)];
-        } else {
-          const limit = Math.min(Number(body.limit ?? 500), 1000);
-          const startAfter = Number(body.start_after ?? 0);
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('telegram_id')
-            .not('telegram_id', 'is', null)
-            .gt('telegram_id', startAfter)
-            .order('telegram_id', { ascending: true })
-            .limit(limit);
-          if (error) throw new Error(error.message);
-          targets = (data ?? [])
-            .map((p: { telegram_id: number | string }) => Number(p.telegram_id))
-            .filter((n: number) => Number.isFinite(n));
-        }
-
-        let sent = 0;
-        const failures: { chat_id: number; error: string }[] = [];
-        for (const chatId of targets) {
-          try {
-            const r = await tg('sendPhoto', {
-              chat_id: chatId,
-              photo: PRIZE_IMAGE,
-              caption: CAPTION,
-              reply_markup: markup,
-            });
-            if (r?.ok) sent++;
-            else failures.push({ chat_id: chatId, error: r?.description ?? 'unknown error' });
-          } catch (e) {
-            failures.push({ chat_id: chatId, error: String(e) });
-          }
-          if ((sent + failures.length) % 25 === 0) await new Promise((r) => setTimeout(r, 800));
-        }
-
-        result = {
-          ok: true,
-          sent,
-          total: targets.length,
-          last_id: targets.length ? targets[targets.length - 1] : null,
-          failures: failures.slice(0, 5),
-        };
-
-        // Self-chain to the next page so one trigger covers every user.
-        if (body.chain && !body.telegram_id && targets.length > 0) {
-          const nextAfter = targets[targets.length - 1];
-          try {
-            void fetch(`${SUPABASE_URL}/functions/v1/telegram-bot`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                apikey: SUPABASE_SERVICE_ROLE_KEY,
-              },
-              body: JSON.stringify({
-                action: 'prizeBroadcast',
-                chain: true,
-                limit: body.limit ?? 500,
-                start_after: nextAfter,
-                caption: CAPTION,
-              }),
-            });
-            await new Promise((r) => setTimeout(r, 500));
-          } catch (e) {
-            console.error('chain failed', e);
-          }
-        }
-        break;
-      }
       default:
         result = { ok: false, error: 'Unknown action' };
     }
@@ -768,113 +716,3 @@ async function runAutoNotifications(supabase: any, BASE_URL: string) {
   return { ok: true, candidates: targets.length, sent, failed, variants: totalVariants() };
 }
 
-// ---------- $10,000 welcome prize ----------
-export const PRIZE_IMAGE_URL =
-  'https://ltgampdtawuefwwayncx.supabase.co/storage/v1/object/public/user-images/nova/prize-10000-nova.jpg';
-
-export const prizeCaption = (name: string) => {
-  const safe = (name || 'Player').replace(/[<>&]/g, '');
-  return (
-    `🏆 <b>${safe}, you won $10,000</b>\n\n` +
-    `Your Nova account has just been credited with <b>$10,000 USDT</b> — the Grand Prize of this round, ` +
-    `in partnership with <b>Google</b> &amp; <b>Alibaba</b>.\n\n` +
-    `💰 Prize: <b>$10,000 USDT</b>\n` +
-    `⏳ Valid for: <b>48 hours only</b>\n` +
-    `🏦 Where: <b>Wallet → Rewards</b>\n\n` +
-    `Open the app and claim it before the countdown ends — unclaimed rewards are removed automatically.`
-  );
-};
-
-
-const prizeMarkup = {
-  inline_keyboard: [[{ text: '🎁 Claim my $10,000', url: APP_URL }]],
-};
-
-async function sendPrizeMessage(baseUrl: string, chatId: number, name: string) {
-  const res = await fetch(`${baseUrl}/sendPhoto`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      photo: PRIZE_IMAGE_URL,
-      caption: prizeCaption(name),
-      parse_mode: 'HTML',
-      reply_markup: prizeMarkup,
-    }),
-  });
-  const json = await res.json().catch(() => ({ ok: false }));
-  if (json?.ok) return true;
-  const fallback = await fetch(`${baseUrl}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: prizeCaption(name),
-      parse_mode: 'HTML',
-      reply_markup: prizeMarkup,
-    }),
-  });
-  const fj = await fallback.json().catch(() => ({ ok: false }));
-  return fj?.ok === true;
-}
-
-async function runPrizeBroadcast(supabase: any, baseUrl: string, limit: number) {
-  const { data: targets } = await supabase.rpc('next_prize_broadcast_targets', {
-    _limit: Math.min(limit, 2000),
-  });
-
-  const rows = targets ?? [];
-  let granted = 0;
-  let sent = 0;
-  let failed = 0;
-  const CHUNK = 25;
-
-  for (let i = 0; i < rows.length; i += CHUNK) {
-    const slice = rows.slice(i, i + CHUNK);
-    await Promise.all(
-      slice.map(async (p: any) => {
-        try {
-          const { data: res } = await supabase.rpc('grant_welcome_prize', {
-            _telegram_id: Number(p.telegram_id),
-          });
-          if (res?.granted) granted++;
-          const ok = await sendPrizeMessage(baseUrl, Number(p.telegram_id), p.first_name);
-          if (ok) sent++;
-          else failed++;
-          // Log every attempt so blocked chats are never retried forever.
-          await supabase.from('prize_broadcast_log').upsert(
-            { profile_id: p.id, sent_at: new Date().toISOString(), delivered: ok },
-            { onConflict: 'profile_id' },
-          );
-        } catch {
-          failed++;
-        }
-      }),
-    );
-    if (i + CHUNK < rows.length) await new Promise((r) => setTimeout(r, 1100));
-  }
-
-  return { ok: true, candidates: rows.length, granted, sent, failed };
-}
-
-// Opens a new broadcast round: re-grants the $10,000 prize to every player
-// (new, old and current) and clears the delivery log so the win message is
-// sent again to everyone by the per-minute worker. Throttled to 3.5 hours so a
-// stray call cannot spam users.
-async function startPrizeRound(supabase: any) {
-  const { data: last } = await supabase
-    .from('prize_broadcast_log')
-    .select('sent_at')
-    .order('sent_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (last?.sent_at && Date.now() - new Date(last.sent_at).getTime() < 3.5 * 60 * 60 * 1000) {
-    return { ok: true, skipped: 'throttled', last_run: last.sent_at };
-  }
-
-  const { data: grant } = await supabase.rpc('grant_prize_to_all');
-  await supabase.from('prize_broadcast_log').delete().gte('sent_at', '1970-01-01');
-
-  return { ok: true, round: 'started', granted: grant?.granted ?? 0 };
-}

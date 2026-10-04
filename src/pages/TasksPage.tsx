@@ -20,6 +20,7 @@ interface Task {
   link: string | null;
   verification_type: string;
   is_pinned: boolean;
+  image_url: string | null;
 }
 
 const REWARD_LABEL: Record<string, string> = {
@@ -59,7 +60,7 @@ const TasksPage = () => {
       async () => {
         const { data } = await supabase
           .from("tasks")
-          .select("id, title, description, reward_amount, reward_type, task_type, link, verification_type, is_pinned")
+          .select("id, title, description, reward_amount, reward_type, task_type, link, verification_type, is_pinned, image_url")
           .eq("is_active", true)
           .order("is_pinned", { ascending: false })
           .order("created_at", { ascending: true });
@@ -187,61 +188,55 @@ const TasksPage = () => {
             </motion.div>
           ) : (
             <div className="pt-2">
-              <h2 className="paper-eyebrow mb-3">Partner missions</h2>
-              <div className="space-y-2">
+              <div className="mb-3 flex items-end justify-between px-1">
+                <h2 className="paper-eyebrow">Missions</h2>
+                <span className="text-[11px] text-muted-foreground">{availableTasks.length} available</span>
+              </div>
+              <div className="space-y-3">
               <AnimatePresence>
                 {availableTasks.map((task, i) => {
                   const label = REWARD_LABEL[task.reward_type] || "$NOVA";
+                  const busy = claiming === task.id;
 
                   return (
-                    <motion.div key={task.id} layout
-                      className="paper-row cursor-pointer"
-                      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }}
+                    <motion.button
+                      type="button"
+                      key={task.id}
+                      layout
+                      disabled={busy}
+                      className="group flex w-full items-center gap-4 rounded-3xl border border-border bg-card/60 p-3 text-left backdrop-blur-md transition-colors hover:bg-card/90 active:scale-[0.99] disabled:opacity-70"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: Math.min(i, 8) * 0.035 }}
-                      onClick={() => void handleTask(task)}>
-                      <div className="p-3.5">
-                        <div className="flex items-center gap-3.5">
-                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-border bg-card">
-                            <img
-                              src={artForTask(task.title)}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              width={256}
-                              height={256}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-[15px] leading-tight text-foreground">{displayTaskTitle(task)}</p>
-                            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-                              +{task.reward_amount} {label}
-                            </p>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); void handleTask(task); }}
-                            disabled={claiming === task.id}
-                            className="btn-ink h-9 min-w-[64px] shrink-0 rounded-full px-4 text-[11px] font-semibold uppercase tracking-widest disabled:opacity-60"
-                          >
-                            {claiming === task.id ? "…" : "Go"}
-                          </button>
-                        </div>
-                        {claiming === task.id && (
-                          <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
-                            <motion.div className="h-full rounded-full bg-primary"
-                              initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 1.2 }} />
-                          </div>
-                        )}
+                      onClick={() => void handleTask(task)}
+                    >
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-border bg-muted">
+                        <img
+                          src={task.image_url || artForTask(task.title)}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          width={128}
+                          height={128}
+                          className="h-full w-full object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = artForTask(task.title); }}
+                        />
                       </div>
 
-                    </motion.div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">{displayTaskTitle(task)}</p>
+                        <span className="mt-1.5 inline-flex items-center rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                          +{task.reward_amount} {label}
+                        </span>
+                      </div>
+
+                      <span className="flex h-9 min-w-[56px] shrink-0 items-center justify-center rounded-full bg-action px-4 text-[11px] font-bold uppercase tracking-widest text-action-foreground">
+                        {busy ? "…" : "Go"}
+                      </span>
+                    </motion.button>
                   );
-
                 })}
-
               </AnimatePresence>
               </div>
             </div>
