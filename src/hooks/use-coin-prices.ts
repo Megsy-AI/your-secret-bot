@@ -36,7 +36,7 @@ const readCache = (): Record<string, CoinMarket> | null => {
 
 /** Live USD prices + official icons, cached for 5 minutes. */
 export const useCoinPrices = () => {
-  const [markets, setMarkets] = useState<Record<string, CoinMarket>>(() => readCache() ?? FALLBACK);
+  const [markets, setMarkets] = useState<Record<string, CoinMarket>>(() => ({ ...readCache() ?? FALLBACK, "the-open-network": { ...(readCache()?.["the-open-network"] ?? FALLBACK["the-open-network"]), image: GRAM_ICON } }));
 
   useEffect(() => {
     if (readCache()) return;
@@ -50,7 +50,7 @@ export const useCoinPrices = () => {
         for (const row of rows) {
           next[row.id] = {
             price: Number(row.current_price ?? 0),
-            image: row.image,
+            image: row.id === "the-open-network" ? GRAM_ICON : row.image,
             change24h: Number(row.price_change_percentage_24h ?? 0),
           };
         }
