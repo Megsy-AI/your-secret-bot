@@ -18,6 +18,16 @@ const StarryBackground = () => {
       hls = new Hls({ capLevelToPlayerSize: true });
       hls.loadSource(VIDEO_SRC);
       hls.attachMedia(v);
+      hls.on(Hls.Events.ERROR, (_e, d) => {
+        if (d.fatal) {
+          hls?.destroy();
+          hls = null;
+          v.src = "/bg-loop.mp4";
+          void v.play().catch(() => undefined);
+        }
+      });
+    } else {
+      v.src = "/bg-loop.mp4";
     }
     const play = () => void v.play().catch(() => undefined);
     play();
@@ -44,8 +54,8 @@ const StarryBackground = () => {
         disablePictureInPicture
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-background/55" />
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
+      <div className="absolute inset-0 bg-background/20" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/80 to-transparent" />
     </div>
   );
 };
