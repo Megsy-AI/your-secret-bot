@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import SpotlightHero from "@/components/hero/SpotlightHero";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,7 +33,7 @@ import { DamageHeatmap } from "@/components/war/DamageHeatmap";
 import { DailyQuestsPanel } from "@/components/war/DailyQuestsPanel";
 import BossStage, { type HitSignal } from "@/components/war/BossStage";
 
-const TON_ICON = "/images/gram-icon.png";
+const TON_ICON = GRAM_ICON;
 
 const monsterImages: Record<string, string> = {
   "monster-1": monster1, "monster-2": monster2, "monster-3": monster3, "monster-4": monster4,

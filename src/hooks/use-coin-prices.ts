@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import { useEffect, useState } from "react";
 
 /** Open-source market data (CoinGecko public API) for the coins we display. */
@@ -15,7 +16,7 @@ const CACHE_KEY = "coin-markets-v1";
 const TTL = 5 * 60 * 1000;
 
 const FALLBACK: Record<CoinId, CoinMarket> = {
-  "the-open-network": { price: 0, image: "/images/gram-icon.png", change24h: 0 },
+  "the-open-network": { price: 0, image: GRAM_ICON, change24h: 0 },
   tether: { price: 1, image: "/images/usdt.png", change24h: 0 },
   "dogs-2": { price: 0, image: "https://coin-images.coingecko.com/coins/images/39042/large/dogs.jpeg", change24h: 0 },
   notcoin: { price: 0, image: "https://coin-images.coingecko.com/coins/images/33453/large/logo.png", change24h: 0 },

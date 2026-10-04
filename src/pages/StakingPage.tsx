@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Lock, TrendingUp } from "lucide-react";
@@ -35,7 +36,7 @@ import {
   type StakingPlan,
 } from "@/lib/staking-api";
 
-const GRAM_ICON = "/images/gram-icon.png";
+
 const NOVA_ICON = "/images/nova-icon.jpg";
 
 const fmt = (n: number, d = 4) =>

@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
@@ -6,7 +7,7 @@ import SpotlightHero from "@/components/hero/SpotlightHero";
 import MiningBoosters from "@/components/MiningBoosters";
 
 
-const TON_ICON = "/images/gram-icon.png";
+const TON_ICON = GRAM_ICON;
 const USDT_ICON = "/images/usdt.png";
 
 const MiningPage = () => {

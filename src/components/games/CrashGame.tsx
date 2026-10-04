@@ -1,3 +1,4 @@
+import { GRAM_ICON } from "@/lib/currency-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Minus, Plus } from "lucide-react";
@@ -328,7 +329,7 @@ const CrashGame = () => {
       {/* Balance only */}
       <div className="flex items-center justify-end px-4 pt-4">
         <span className="flex items-center gap-2 rounded-full bg-foreground/10 px-4 py-2 text-[14px] font-semibold text-foreground">
-          <img src="/images/ton-icon.jpg" alt="" className="h-5 w-5 rounded-full object-cover" />
+          <img src=GRAM_ICON alt="" className="h-5 w-5 rounded-full object-cover" />
           {fmt(balance)}
         </span>
       </div>
@@ -467,7 +468,7 @@ const CrashGame = () => {
             disabled={topping || queued !== null}
             className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-foreground font-display text-[18px] text-[hsl(var(--crash-bg))] disabled:opacity-60"
           >
-            <img src="/images/ton-icon.jpg" alt="" className="h-6 w-6 rounded-full object-cover" />
+            <img src=GRAM_ICON alt="" className="h-6 w-6 rounded-full object-cover" />
             {topping ? "..." : queued !== null ? "Bet placed" : "Bet with TON"}
           </button>
         )}
