@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
+import Hls from "hls.js";
 
-const bgVideoMp4 =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_075824_7c8a2ef3-826c-43ca-81a1-162429faa306.mp4";
+const VIDEO_SRC = "https://stream.mux.com/kimF2ha9zLrX64H00UgLGPflCzNtl1T0215MlAmeOztv8.m3u8";
 
-/** Global video background shared by every page. */
+/** Global fullscreen video background shared by every page (dark hero style). */
 const StarryBackground = () => {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -11,20 +11,22 @@ const StarryBackground = () => {
     const v = ref.current;
     if (!v) return;
     v.muted = true;
-    v.defaultMuted = true;
+    let hls: Hls | null = null;
+    if (v.canPlayType("application/vnd.apple.mpegurl")) {
+      v.src = VIDEO_SRC;
+    } else if (Hls.isSupported()) {
+      hls = new Hls({ capLevelToPlayerSize: true });
+      hls.loadSource(VIDEO_SRC);
+      hls.attachMedia(v);
+    }
     const play = () => void v.play().catch(() => undefined);
     play();
     document.addEventListener("touchstart", play, { once: true });
     document.addEventListener("click", play, { once: true });
-
-    // Stop decoding frames while the mini app is in the background.
-    const onVisibility = () => {
-      if (document.hidden) v.pause();
-      else play();
-    };
+    const onVisibility = () => (document.hidden ? v.pause() : play());
     document.addEventListener("visibilitychange", onVisibility);
-
     return () => {
+      hls?.destroy();
       document.removeEventListener("touchstart", play);
       document.removeEventListener("click", play);
       document.removeEventListener("visibilitychange", onVisibility);
@@ -39,12 +41,11 @@ const StarryBackground = () => {
         loop
         muted
         playsInline
-        preload="auto"
         disablePictureInPicture
         className="absolute inset-0 h-full w-full object-cover"
-      >
-        <source src={bgVideoMp4} type="video/mp4" />
-      </video>
+      />
+      <div className="absolute inset-0 bg-background/55" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
     </div>
   );
 };

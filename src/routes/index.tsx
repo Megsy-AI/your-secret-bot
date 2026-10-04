@@ -1,29 +1,8 @@
-import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import MiningPage from "@/pages/MiningPage";
-import LandingPage from "@/pages/LandingPage";
-
-function Home() {
-  // Inside Telegram the game opens; regular browsers get the landing page.
-  const [mode, setMode] = useState<"pending" | "app" | "landing">("pending");
-
-  useEffect(() => {
-    let tries = 0;
-    const check = () => {
-      const wa = (window as any).Telegram?.WebApp;
-      if (wa?.initData) return setMode("app");
-      if (++tries >= 6) return setMode("landing");
-      setTimeout(check, 100);
-    };
-    check();
-  }, []);
-
-  if (mode === "pending") return <div className="min-h-screen bg-black" />;
-  return mode === "app" ? <MiningPage /> : <LandingPage />;
-}
 
 export const Route = createFileRoute("/")({
-  component: Home,
+  component: MiningPage,
   head: () => ({
     meta: [
       { title: "Nova - Mine NOVA, TON and USDT in Telegram" },
