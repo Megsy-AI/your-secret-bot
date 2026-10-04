@@ -9,3 +9,4 @@
 - [ ] Deploy on Vercel with provided token and update all links (bot webhook, app URL, TON manifest)
 - [ ] Daily auto channel post at 03:00 UTC (channel -1002616088306), English, clean image, Open App button, no emojis; scheduled from Supabase pg_cron; send first post now
 - [ ] Auto notifications to users every 7 hours (Supabase pg_cron -> telegram-bot auto_notify)
+- [ ] Channel post images must feature the uploaded plush character (file_00000000071c8246b425b04574665609.png), clean bold text, no emojis
