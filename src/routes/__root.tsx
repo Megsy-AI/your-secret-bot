@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
   ClientOnly,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
