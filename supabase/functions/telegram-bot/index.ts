@@ -249,14 +249,62 @@ serve(async (req) => {
           },
         });
       }
+      if (d.step === 'image') {
+        return tg('sendMessage', {
+          chat_id: chat,
+          text: `${draftSummary(d)}\n\nSend the task image as a photo, or tap "Skip image".`,
+          parse_mode: 'HTML',
+          reply_markup: { inline_keyboard: [[{ text: 'Skip image', callback_data: 'adm_img_none' }], cancelRow] },
+        });
+      }
+      const confirmText = `${draftSummary(d)}\n\nSave this task?`;
+      const confirmMarkup = {
+        inline_keyboard: [
+          [{ text: 'Save task', callback_data: 'adm_save' }],
+          [{ text: 'Change reward', callback_data: 'adm_reward' }],
+          cancelRow,
+        ],
+      };
+      if (d.image) {
+        const r = await tg('sendPhoto', {
+          chat_id: chat,
+          photo: d.image,
+          caption: confirmText,
+          parse_mode: 'HTML',
+          reply_markup: confirmMarkup,
+        });
+        if (r?.ok) return r;
+      }
       return tg('sendMessage', {
         chat_id: chat,
-        text: `${draftSummary(d)}\n\nSave this Nova task?`,
+        text: confirmText,
         parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [[{ text: 'Save task', callback_data: 'adm_save' }], cancelRow],
-        },
+        reply_markup: confirmMarkup,
       });
+    };
+
+    // Downloads a Telegram file and stores it in the public bucket; returns its public URL.
+    const uploadTelegramImage = async (fileId: string): Promise<string | null> => {
+      try {
+        const info = await tg('getFile', { file_id: fileId });
+        const filePath: string | undefined = info?.result?.file_path;
+        if (!filePath) return null;
+        const res = await fetch(`https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${filePath}`);
+        if (!res.ok) return null;
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        const ext = (filePath.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        const path = `tasks/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from('user-images').upload(path, bytes, { contentType, upsert: true });
+        if (error) {
+          console.error('task image upload failed', error);
+          return null;
+        }
+        return supabase.storage.from('user-images').getPublicUrl(path).data.publicUrl;
+      } catch (e) {
+        console.error('uploadTelegramImage error', e);
+        return null;
+      }
     };
 
     const saveDraft = async (chat: number, tgId: number, d: any) => {
@@ -268,6 +316,7 @@ serve(async (req) => {
         task_type: d.link ? 'link' : 'custom',
         verification_type: 'auto',
         is_active: true,
+        image_url: d.image || null,
       });
       await clearDraft(tgId);
       await tg('sendMessage', {
@@ -290,7 +339,7 @@ serve(async (req) => {
           const l = await listTasks();
           await tg('sendMessage', { chat_id: cqChat, text: l.text, parse_mode: 'HTML', reply_markup: l.markup });
         } else if (data === 'adm_add') {
-          const d = { step: 'title', title: '', link: '', rewardType: '', reward: null };
+          const d = { step: 'title', title: '', link: '', image: '', rewardType: 'siri', reward: 100 };
           await setDraft(cqUser, d);
           await askStep(cqChat, d);
         } else if (data === 'adm_cancel') {
@@ -299,6 +348,17 @@ serve(async (req) => {
         } else if (data === 'adm_link_none') {
           const d = (await getDraft(cqUser)) || {};
           d.link = '';
+          d.step = 'image';
+          await setDraft(cqUser, d);
+          await askStep(cqChat, d);
+        } else if (data === 'adm_img_none') {
+          const d = (await getDraft(cqUser)) || {};
+          d.image = '';
+          d.step = 'confirm';
+          await setDraft(cqUser, d);
+          await askStep(cqChat, d);
+        } else if (data === 'adm_reward') {
+          const d = (await getDraft(cqUser)) || {};
           d.step = 'type';
           await setDraft(cqUser, d);
           await askStep(cqChat, d);
@@ -321,7 +381,18 @@ serve(async (req) => {
         } else if (data.startsWith('adm_del:')) {
           const id = data.slice(8);
           const { error } = await supabase.from('tasks').delete().eq('id', id);
-          await tg('sendMessage', { chat_id: cqChat, text: error ? `Delete failed: ${error.message}` : 'Nova task deleted.', reply_markup: adminKeyboard });
+          await tg('sendMessage', { chat_id: cqChat, text: error ? `Delete failed: ${error.message}` : 'Task deleted.', reply_markup: adminKeyboard });
+        } else if (data === 'adm_delall') {
+          await tg('sendMessage', {
+            chat_id: cqChat,
+            text: '<b>Delete ALL tasks?</b>\n\nThis removes every task and cannot be undone.',
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: [[{ text: 'Yes, delete all', callback_data: 'adm_delall_yes' }], cancelRow] },
+          });
+        } else if (data === 'adm_delall_yes') {
+          await supabase.from('user_tasks').delete().gte('completed_at', '1970-01-01');
+          const { error } = await supabase.from('tasks').delete().gte('created_at', '1970-01-01');
+          await tg('sendMessage', { chat_id: cqChat, text: error ? `Delete failed: ${error.message}` : 'All tasks deleted.', reply_markup: adminKeyboard });
         }
       }
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
