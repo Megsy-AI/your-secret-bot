@@ -49,6 +49,270 @@ export type Database = {
           },
         ]
       }
+      ads_ad_views: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          telegram_id: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          telegram_id: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          telegram_id?: number
+        }
+        Relationships: []
+      }
+      ads_payments: {
+        Row: {
+          amount_ton: number
+          created_at: string
+          id: string
+          memo: string
+          paid_at: string | null
+          product: string
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+        }
+        Insert: {
+          amount_ton: number
+          created_at?: string
+          id?: string
+          memo: string
+          paid_at?: string | null
+          product: string
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+        }
+        Update: {
+          amount_ton?: number
+          created_at?: string
+          id?: string
+          memo?: string
+          paid_at?: string | null
+          product?: string
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      ads_spins: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          telegram_id: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          telegram_id: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          telegram_id?: number
+        }
+        Relationships: []
+      }
+      ads_tasks: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key: string
+          kind: string
+          link: string | null
+          reward_amount: number
+          reward_currency: string
+          sort_order: number
+          target: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          kind: string
+          link?: string | null
+          reward_amount: number
+          reward_currency: string
+          sort_order?: number
+          target?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          kind?: string
+          link?: string | null
+          reward_amount?: number
+          reward_currency?: string
+          sort_order?: number
+          target?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      ads_translations: {
+        Row: {
+          created_at: string
+          data: Json
+          lang: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          lang: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          lang?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      ads_user_tasks: {
+        Row: {
+          created_at: string
+          id: string
+          task_key: string
+          telegram_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          task_key: string
+          telegram_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          task_key?: string
+          telegram_id?: number
+        }
+        Relationships: []
+      }
+      ads_users: {
+        Row: {
+          ads: number
+          ads_watched: number
+          booster: string | null
+          booster_mult: number
+          booster_until: string | null
+          created_at: string
+          first_name: string | null
+          gram: number
+          id: string
+          language: string
+          last_ad_at: string | null
+          photo_url: string | null
+          referrals: number
+          referred_by: number | null
+          telegram_id: number
+          tickets: number
+          updated_at: string
+          usdt: number
+          username: string | null
+        }
+        Insert: {
+          ads?: number
+          ads_watched?: number
+          booster?: string | null
+          booster_mult?: number
+          booster_until?: string | null
+          created_at?: string
+          first_name?: string | null
+          gram?: number
+          id?: string
+          language?: string
+          last_ad_at?: string | null
+          photo_url?: string | null
+          referrals?: number
+          referred_by?: number | null
+          telegram_id: number
+          tickets?: number
+          updated_at?: string
+          usdt?: number
+          username?: string | null
+        }
+        Update: {
+          ads?: number
+          ads_watched?: number
+          booster?: string | null
+          booster_mult?: number
+          booster_until?: string | null
+          created_at?: string
+          first_name?: string | null
+          gram?: number
+          id?: string
+          language?: string
+          last_ad_at?: string | null
+          photo_url?: string | null
+          referrals?: number
+          referred_by?: number | null
+          telegram_id?: number
+          tickets?: number
+          updated_at?: string
+          usdt?: number
+          username?: string | null
+        }
+        Relationships: []
+      }
+      ads_withdrawals: {
+        Row: {
+          address: string
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          status: string
+          telegram_id: number
+        }
+        Insert: {
+          address: string
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          status?: string
+          telegram_id: number
+        }
+        Update: {
+          address?: string
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          telegram_id?: number
+        }
+        Relationships: []
+      }
       ai_generations: {
         Row: {
           created_at: string
@@ -284,6 +548,36 @@ export type Database = {
           },
         ]
       }
+      bot_settings: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      bot_updates: {
+        Row: {
+          created_at: string
+          update_id: number
+        }
+        Insert: {
+          created_at?: string
+          update_id: number
+        }
+        Update: {
+          created_at?: string
+          update_id?: number
+        }
+        Relationships: []
+      }
       characters: {
         Row: {
           created_at: string
@@ -330,6 +624,71 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crash_notification_log: {
+        Row: {
+          created_at: string
+          last_sent_at: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          last_sent_at?: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          last_sent_at?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crash_notification_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_posts: {
+        Row: {
+          app: string
+          created_at: string
+          id: string
+          image_prompt: string | null
+          image_url: string | null
+          post_date: string
+          telegram_message_id: number | null
+          text: string
+          topic: string | null
+        }
+        Insert: {
+          app: string
+          created_at?: string
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          post_date: string
+          telegram_message_id?: number | null
+          text: string
+          topic?: string | null
+        }
+        Update: {
+          app?: string
+          created_at?: string
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          post_date?: string
+          telegram_message_id?: number | null
+          text?: string
+          topic?: string | null
+        }
+        Relationships: []
       }
       game_bets: {
         Row: {
@@ -446,7 +805,10 @@ export type Database = {
           ends_at: string
           id: string
           reward_amount: number | null
+          siri_reward: number
           started_at: string
+          ton_reward: number
+          usdt_reward: number
           user_id: string
         }
         Insert: {
@@ -455,7 +817,10 @@ export type Database = {
           ends_at: string
           id?: string
           reward_amount?: number | null
+          siri_reward?: number
           started_at?: string
+          ton_reward?: number
+          usdt_reward?: number
           user_id: string
         }
         Update: {
@@ -464,7 +829,10 @@ export type Database = {
           ends_at?: string
           id?: string
           reward_amount?: number | null
+          siri_reward?: number
           started_at?: string
+          ton_reward?: number
+          usdt_reward?: number
           user_id?: string
         }
         Relationships: [
@@ -476,6 +844,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partner_tasks: {
+        Row: {
+          caption: string | null
+          chat_id: number
+          created_at: string
+          id: string
+          image_file_id: string | null
+          partner_name: string | null
+          partner_user_id: number
+          partner_username: string | null
+          proof_file_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          chat_id: number
+          created_at?: string
+          id?: string
+          image_file_id?: string | null
+          partner_name?: string | null
+          partner_user_id: number
+          partner_username?: string | null
+          proof_file_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          chat_id?: number
+          created_at?: string
+          id?: string
+          image_file_id?: string | null
+          partner_name?: string | null
+          partner_user_id?: number
+          partner_username?: string | null
+          proof_file_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partnerships: {
+        Row: {
+          added_by: number
+          app: string | null
+          assigned_at: string | null
+          assigned_to: number | null
+          chat_id: number
+          chat_title: string | null
+          created_at: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          added_by: number
+          app?: string | null
+          assigned_at?: string | null
+          assigned_to?: number | null
+          chat_id: number
+          chat_title?: string | null
+          created_at?: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: number
+          app?: string | null
+          assigned_at?: string | null
+          assigned_to?: number | null
+          chat_id?: number
+          chat_title?: string | null
+          created_at?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       prize_broadcast_log: {
         Row: {
@@ -565,6 +1011,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      public_groups: {
+        Row: {
+          added_by: number | null
+          chat_id: number
+          created_at: string
+          title: string | null
+        }
+        Insert: {
+          added_by?: number | null
+          chat_id: number
+          created_at?: string
+          title?: string | null
+        }
+        Update: {
+          added_by?: number | null
+          chat_id?: number
+          created_at?: string
+          title?: string | null
+        }
+        Relationships: []
       }
       pvp_character_owned: {
         Row: {
@@ -976,6 +1443,7 @@ export type Database = {
           duration_days: number
           early_exit_fee_pct: number
           ends_at: string
+          funded_amount: number
           id: string
           last_claim_at: string
           plan_id: string
@@ -994,6 +1462,7 @@ export type Database = {
           duration_days: number
           early_exit_fee_pct?: number
           ends_at: string
+          funded_amount: number
           id?: string
           last_claim_at?: string
           plan_id: string
@@ -1012,6 +1481,7 @@ export type Database = {
           duration_days?: number
           early_exit_fee_pct?: number
           ends_at?: string
+          funded_amount?: number
           id?: string
           last_claim_at?: string
           plan_id?: string
@@ -1030,6 +1500,53 @@ export type Database = {
           },
           {
             foreignKeyName: "stakes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staking_personal_offers: {
+        Row: {
+          created_at: string
+          currency: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          message_sent_at: string | null
+          multiplier: number
+          profile_id: string
+          starts_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          message_sent_at?: string | null
+          multiplier?: number
+          profile_id: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          message_sent_at?: string | null
+          multiplier?: number
+          profile_id?: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staking_personal_offers_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1129,6 +1646,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           is_pinned: boolean
           link: string | null
@@ -1143,6 +1661,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           is_pinned?: boolean
           link?: string | null
@@ -1157,6 +1676,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           is_pinned?: boolean
           link?: string | null
@@ -1382,6 +1902,296 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tt_ai_bots: {
+        Row: {
+          balance: number
+          created_at: string
+          deposit: number
+          id: string
+          pnl: number
+          risk: string
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+          updated_at: string
+          verified: boolean
+          verified_at: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          deposit?: number
+          id?: string
+          pnl?: number
+          risk?: string
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+          updated_at?: string
+          verified?: boolean
+          verified_at?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          deposit?: number
+          id?: string
+          pnl?: number
+          risk?: string
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+          updated_at?: string
+          verified?: boolean
+          verified_at?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      tt_ai_trades: {
+        Row: {
+          actual_ask_amount: number | null
+          actual_offer_amount: number | null
+          bot_id: string
+          closed_at: string | null
+          confirmed_at: string | null
+          entry_price: number
+          exit_price: number | null
+          id: string
+          opened_at: string
+          pair: string
+          pnl: number
+          side: string
+          size: number
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+        }
+        Insert: {
+          actual_ask_amount?: number | null
+          actual_offer_amount?: number | null
+          bot_id: string
+          closed_at?: string | null
+          confirmed_at?: string | null
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          opened_at?: string
+          pair: string
+          pnl?: number
+          side: string
+          size: number
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+        }
+        Update: {
+          actual_ask_amount?: number | null
+          actual_offer_amount?: number | null
+          bot_id?: string
+          closed_at?: string | null
+          confirmed_at?: string | null
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          opened_at?: string
+          pair?: string
+          pnl?: number
+          side?: string
+          size?: number
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tt_ai_trades_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "tt_ai_bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tt_stakes: {
+        Row: {
+          amount: number
+          apy: number
+          coin: string
+          created_at: string
+          ends_at: string
+          id: string
+          lock_days: number
+          rewards_claimed: number
+          sender_address: string | null
+          started_at: string
+          status: string
+          telegram_id: number
+          tier: string
+          ton_paid: number
+          tx_hash: string | null
+          verified: boolean
+          verified_at: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          amount: number
+          apy: number
+          coin?: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          lock_days: number
+          rewards_claimed?: number
+          sender_address?: string | null
+          started_at?: string
+          status?: string
+          telegram_id: number
+          tier: string
+          ton_paid?: number
+          tx_hash?: string | null
+          verified?: boolean
+          verified_at?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          amount?: number
+          apy?: number
+          coin?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          lock_days?: number
+          rewards_claimed?: number
+          sender_address?: string | null
+          started_at?: string
+          status?: string
+          telegram_id?: number
+          tier?: string
+          ton_paid?: number
+          tx_hash?: string | null
+          verified?: boolean
+          verified_at?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      tt_users: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          telegram_id: number
+          updated_at: string
+          username: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          telegram_id: number
+          updated_at?: string
+          username?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          telegram_id?: number
+          updated_at?: string
+          username?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      tt_wallet_ops: {
+        Row: {
+          amount: number
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          ref_id: string | null
+          sender_address: string | null
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind: string
+          ref_id?: string | null
+          sender_address?: string | null
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          ref_id?: string | null
+          sender_address?: string | null
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      tt_withdrawals: {
+        Row: {
+          admin_note: string | null
+          admin_telegram_id: number | null
+          amount: number
+          coin: string
+          created_at: string
+          decided_at: string | null
+          id: string
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+          username: string | null
+          wallet_address: string
+        }
+        Insert: {
+          admin_note?: string | null
+          admin_telegram_id?: number | null
+          amount: number
+          coin?: string
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+          username?: string | null
+          wallet_address: string
+        }
+        Update: {
+          admin_note?: string | null
+          admin_telegram_id?: number | null
+          amount?: number
+          coin?: string
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+          username?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
       }
       user_nfts: {
         Row: {
@@ -1697,7 +2507,7 @@ export type Database = {
         }
       }
       all_prize_broadcast_targets: {
-        Args: { _limit: number; _offset?: number }
+        Args: { _limit?: number; _offset?: number }
         Returns: {
           first_name: string
           id: string
@@ -1740,6 +2550,7 @@ export type Database = {
           round_id: number
         }[]
       }
+      game_crash_pick: { Args: { _u: number; _v: number }; Returns: number }
       game_crash_players: {
         Args: { _exclude?: number; _limit?: number; _round: number }
         Returns: {
@@ -1873,6 +2684,17 @@ export type Database = {
         }
         Returns: Json
       }
+      purchase_battle_item_with_balance: {
+        Args: {
+          _category: string
+          _package_key: string
+          _package_name: string
+          _price: number
+          _quantity: number
+          _telegram_id: number
+        }
+        Returns: Json
+      }
       purchase_battle_item_with_intent: {
         Args: {
           _category: string
@@ -1893,6 +2715,10 @@ export type Database = {
           _tx_hash?: string
           _wallet_address?: string
         }
+        Returns: Json
+      }
+      purchase_server_with_balance: {
+        Args: { _server_id: string; _telegram_id: number }
         Returns: Json
       }
       purchase_server_with_intent: {
@@ -2009,6 +2835,7 @@ export type Database = {
         Args: { _telegram_id: number }
         Returns: Json
       }
+      trigger_daily_post: { Args: { _app: string }; Returns: undefined }
       verify_wallet_with_intent: {
         Args: {
           _intent_id: string
