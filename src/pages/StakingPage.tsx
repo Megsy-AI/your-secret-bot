@@ -232,7 +232,6 @@ const StakingPage = () => {
                 <p className="text-[10px] uppercase tracking-[0.28em] text-white/55">TON market</p>
                 <p className="mt-1 text-sm font-semibold text-white">Live prices from CoinGecko</p>
               </div>
-              <span className="text-[10px] text-emerald-300">OPEN SOURCE DATA</span>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {[
