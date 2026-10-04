@@ -76,50 +76,6 @@ serve(async (req) => {
       });
     }
 
-    // Admin preview: sends the prize message to one chat for visual review.
-    if (body?.task === 'prize_preview') {
-      const tgId = Number(body?.admin_telegram_id);
-      if (!(await requireAdmin(tgId))) {
-        return new Response(JSON.stringify({ error: 'forbidden' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const ok = await sendPrizeMessage(BASE_URL, tgId, String(body?.name ?? 'Player'));
-      return new Response(JSON.stringify({ ok, image: PRIZE_IMAGE_URL }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // One-off backfill: grants the prize to existing players and messages them.
-    if (body?.task === 'prize_broadcast') {
-      if (!(await requireAdmin(Number(body?.admin_telegram_id)))) {
-        return new Response(JSON.stringify({ error: 'forbidden' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const result = await runPrizeBroadcast(supabase, BASE_URL, Number(body?.limit ?? 3000));
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Recurring broadcast (every 4 hours, triggered by cron): re-grants the
-    // $10,000 prize to EVERY player and opens a new announcement round.
-    if (body?.task === 'prize_broadcast_all') {
-      const result = await startPrizeRound(supabase);
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Worker (cron, every minute): sends the win message to the next slice of
-    // players in the open round. Keeps each invocation inside worker limits.
-    if (body?.task === 'prize_broadcast_send') {
-      const result = await runPrizeBroadcast(supabase, BASE_URL, Number(body?.limit ?? 300));
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
 
 
