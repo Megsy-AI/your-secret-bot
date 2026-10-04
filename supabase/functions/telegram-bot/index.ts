@@ -64,6 +64,14 @@ serve(async (req) => {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      if (body?.delete_message_id) {
+        const d = await fetch(`${BASE_URL}/deleteMessage`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: CHANNEL_ID, message_id: Number(body.delete_message_id) }),
+        });
+        await supabase.from('daily_posts').delete().eq('telegram_message_id', Number(body.delete_message_id));
+        return new Response(JSON.stringify(await d.json()), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
       const result = await runChannelPost(supabase, BASE_URL, body?.force === true);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
