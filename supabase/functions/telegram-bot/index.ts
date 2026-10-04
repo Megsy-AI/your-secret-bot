@@ -734,7 +734,7 @@ async function runChannelPost(supabase: any, BASE_URL: string, force = false) {
   let res = await fetch(`${BASE_URL}/sendPhoto`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: CHANNEL_ID, photo: POST_IMG(p.img), caption, parse_mode: "HTML", reply_markup }),
+    body: JSON.stringify({ chat_id: CHANNEL_ID, photo: p.photo, caption, parse_mode: "HTML", reply_markup }),
   });
   let json = await res.json();
   if (!json.ok) {
@@ -748,7 +748,7 @@ async function runChannelPost(supabase: any, BASE_URL: string, force = false) {
   if (!json.ok) return { ok: false, error: json.description };
   await supabase.from("daily_posts").insert({
     app: "nova", post_date: today, topic: p.topic, text: caption,
-    image_url: POST_IMG(p.img), telegram_message_id: json.result?.message_id ?? null,
+    image_url: p.photo, telegram_message_id: json.result?.message_id ?? null,
   });
   return { ok: true, message_id: json.result?.message_id };
 }
