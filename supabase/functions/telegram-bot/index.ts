@@ -83,7 +83,7 @@ serve(async (req) => {
         .from('ads-tasks')
         .upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
       if (upErr) {
-        return new Response(JSON.stringify({ error: upErr.message }), {
+        return new Response(JSON.stringify({ error: upErr.message, host: new URL(Deno.env.get('SUPABASE_URL')!).host }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
