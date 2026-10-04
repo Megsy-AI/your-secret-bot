@@ -11,3 +11,4 @@
 - [ ] Auto notifications to users every 7 hours (Supabase pg_cron -> telegram-bot auto_notify)
 - [ ] Channel post images must feature the uploaded plush character (file_00000000071c8246b425b04574665609.png), clean bold text, no emojis
 - [ ] Character images with pink + blue gradient backgrounds for: daily channel posts (3) AND the /start welcome image (telegram_admins.welcome_image_url)
+- [ ] SUPERSEDES character/pink-blue: all post images + /start image in ASTRONAUT style (purple cosmic, reference IMG_20261004_062717_727.jpg), English bold text, no emojis; host in public bucket ads-tasks (user-images bucket does not exist -> fix uploadTelegramImage + store_image to use ads-tasks)
