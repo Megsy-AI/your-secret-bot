@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { Progress } from "@/components/ui/progress";
 import SpotlightHero from "@/components/hero/SpotlightHero";
 import MiningBoosters from "@/components/MiningBoosters";
+import { useToast } from "@/hooks/use-toast";
 
 
 const TON_ICON = GRAM_ICON;
