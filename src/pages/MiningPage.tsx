@@ -5,14 +5,13 @@ import { useApp } from "@/context/AppContext";
 import { Progress } from "@/components/ui/progress";
 import SpotlightHero from "@/components/hero/SpotlightHero";
 import MiningBoosters from "@/components/MiningBoosters";
-import { useToast } from "@/hooks/use-toast";
 
 
 const TON_ICON = GRAM_ICON;
 const USDT_ICON = "/images/usdt.png";
 
 const MiningPage = () => {
-  const { user, startMining, getMiningTimeLeft, getMiningProgress } = useApp();
+  const { user, startMining, getMiningTimeLeft, getMiningProgress, miningError } = useApp();
   const [timeLeft, setTimeLeft] = useState("00:00:00");
   const [progress, setProgress] = useState(0);
 
@@ -48,6 +47,8 @@ const MiningPage = () => {
           >
             {user.isMining ? `Mining · ${timeLeft}` : "Start Mining"}
           </button>
+
+          {miningError && <p role="alert" className="mt-3 text-center text-sm text-destructive">{miningError}</p>}
 
           {user.isMining && (
             <div className="mt-4">
