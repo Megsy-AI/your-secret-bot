@@ -14,6 +14,9 @@
 - [ ] SUPERSEDES character/pink-blue: all post images + /start image in ASTRONAUT style (purple cosmic, reference IMG_20261004_062717_727.jpg), English bold text, no emojis; host in public bucket ads-tasks (user-images bucket does not exist -> fix uploadTelegramImage + store_image to use ads-tasks)
 
 ## Status
+- [ ] Restore the originally intended animated background; restore Gram icon; show requested Nova coin icon; remove "TON market" label
+- [ ] Investigate and fix mining not crediting real balances after completion
+- [ ] Identify referral code owner safely for user-requested test
 - [x] Remove "OPEN SOURCE DATA" label; use uploaded purple Gram symbol throughout; refresh bottom navigation symbols
 - [x] Restore moving background inside Telegram with local MP4, WebM fallback, and visible poster
 - [x] Prize removed (UI, DB, bot); tasks redesigned with images; /101 admin flow + delete-all

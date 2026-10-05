@@ -1,4 +1,4 @@
-import { GRAM_ICON } from "@/lib/currency-icons";
+import { GRAM_ICON, NOVA_ICON } from "@/lib/currency-icons";
 import SpotlightHero from "@/components/hero/SpotlightHero";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -14,8 +14,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { PaymentError, sendTonPayment, TON_FEE_BUFFER } from "@/lib/ton";
 import { creditDepositWithIntent, isWalletVerified, requestWithdrawal, verifyTonOnChain, verifyWalletWithIntent } from "@/lib/game-api";
 import { useCoinPrices, formatUsd } from "@/hooks/use-coin-prices";
-
-const NOVA_ICON = "/images/nova-icon.jpg";
 
 
 const TON_ICON = GRAM_ICON;

@@ -1,4 +1,4 @@
-import { GRAM_ICON } from "@/lib/currency-icons";
+import { GRAM_ICON, NOVA_ICON } from "@/lib/currency-icons";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
@@ -11,7 +11,7 @@ const TON_ICON = GRAM_ICON;
 const USDT_ICON = "/images/usdt.png";
 
 const MiningPage = () => {
-  const { user, startMining, getMiningTimeLeft, getMiningProgress } = useApp();
+  const { user, startMining, getMiningTimeLeft, getMiningProgress, miningError } = useApp();
   const [timeLeft, setTimeLeft] = useState("00:00:00");
   const [progress, setProgress] = useState(0);
 
@@ -32,7 +32,10 @@ const MiningPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="nv-eyebrow block text-center">$NOVA Balance</p>
+          <div className="flex items-center justify-center gap-2">
+            <img src={NOVA_ICON} alt="Nova" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+            <p className="nv-eyebrow">$NOVA Balance</p>
+          </div>
           <p className="hero-title mt-1.5 text-center text-[56px] leading-none tracking-tight">
             {user.siriBalance.toLocaleString("en-US", { maximumFractionDigits: 2 })}
           </p>
@@ -44,6 +47,8 @@ const MiningPage = () => {
           >
             {user.isMining ? `Mining · ${timeLeft}` : "Start Mining"}
           </button>
+
+          {miningError && <p role="alert" className="mt-3 text-center text-sm text-destructive">{miningError}</p>}
 
           {user.isMining && (
             <div className="mt-4">

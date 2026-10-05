@@ -39,6 +39,7 @@ interface AppContextType {
   getMiningTimeLeft: () => string;
   getMiningProgress: () => number;
   loading: boolean;
+  miningError: string | null;
   refreshProfile: () => Promise<void>;
 }
 
@@ -84,6 +85,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }));
   // The app renders immediately; profile data loads in the background.
   const [loading, setLoading] = useState(false);
+  const [miningError, setMiningError] = useState<string | null>(null);
 
 
 
@@ -155,6 +157,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshProfile = useCallback(async () => {
     try {
+      setMiningError(null);
       const resolved = await resolveTelegramUser();
       const telegramUser: TelegramUserPayload = {
         id: resolved.id,
@@ -185,6 +188,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         miningState = await withTimeout(syncMiningForTelegram(telegramUser.id), 8000);
       } catch (e) {
         console.warn("Mining sync failed, using defaults:", e);
+        setMiningError("Mining rewards could not be updated. Please try again later.");
       }
 
       let freshProfile: any = null;
@@ -227,8 +231,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const startMining = useCallback(() => {
     void (async () => {
       try {
+        setMiningError(null);
         const result = await startMiningForTelegram(user.telegramUser.id);
-        if (!result.success) return;
+        if (!result.success) {
+          setMiningError("Mining could not start. Please try again later.");
+          return;
+        }
+
+        if (!result.isMining) {
+          await refreshProfile();
+          return;
+        }
 
         setUser((prev) => ({
           ...prev,
@@ -237,9 +250,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }));
       } catch (error) {
         console.error("Mining start error:", error);
+        setMiningError("Mining could not start. Please try again later.");
       }
     })();
-  }, [user.telegramUser.id]);
+  }, [user.telegramUser.id, refreshProfile]);
 
   const getMiningTimeLeft = useCallback(() => {
     if (!user.miningEndTime) return "00:00:00";
@@ -270,7 +284,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [refreshProfile, user.isMining, user.miningEndTime]);
 
   return (
-    <AppContext.Provider value={{ user, setUser, startMining, getMiningTimeLeft, getMiningProgress, loading, refreshProfile }}>
+    <AppContext.Provider value={{ user, setUser, startMining, getMiningTimeLeft, getMiningProgress, loading, miningError, refreshProfile }}>
       {children}
     </AppContext.Provider>
   );
