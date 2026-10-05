@@ -912,7 +912,7 @@ button.mining-active-btn::after {
   --gradient-primary: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 70%));
 }
 .liquid-bg {
-  background: hsl(var(--background)) url('/images/bg-poster.jpg') center / cover no-repeat;
+  background: hsl(var(--background)) url('/__l5e/assets-v1/e9faeffa-f1d3-4e34-998c-86da9b482b0d/original-bg-poster.jpg') center / cover no-repeat;
   min-height: 100vh;
   min-height: 100dvh;
   transform: translateZ(0);

@@ -1,4 +1,4 @@
-import { GRAM_ICON } from "@/lib/currency-icons";
+import { GRAM_ICON, NOVA_ICON } from "@/lib/currency-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Lock, TrendingUp } from "lucide-react";
@@ -36,8 +36,6 @@ import {
   type StakingPlan,
 } from "@/lib/staking-api";
 
-
-const NOVA_ICON = "/images/nova-icon.jpg";
 
 const fmt = (n: number, d = 4) =>
   Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: d });
@@ -230,7 +228,6 @@ const StakingPage = () => {
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.28em] text-white/55">TON market</p>
                 <p className="mt-1 text-sm font-semibold text-white">Live prices from CoinGecko</p>
               </div>
             </div>

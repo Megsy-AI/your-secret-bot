@@ -1,4 +1,4 @@
-import { GRAM_ICON } from "@/lib/currency-icons";
+import { GRAM_ICON, NOVA_ICON } from "@/lib/currency-icons";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
@@ -32,7 +32,10 @@ const MiningPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="nv-eyebrow block text-center">$NOVA Balance</p>
+          <div className="flex items-center justify-center gap-2">
+            <img src={NOVA_ICON} alt="Nova" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+            <p className="nv-eyebrow">$NOVA Balance</p>
+          </div>
           <p className="hero-title mt-1.5 text-center text-[56px] leading-none tracking-tight">
             {user.siriBalance.toLocaleString("en-US", { maximumFractionDigits: 2 })}
           </p>

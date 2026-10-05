@@ -1,3 +1,4 @@
-import gramIcon from "@/assets/gram-purple.jpg.asset.json";
+import novaIcon from "@/assets/gram-purple.jpg.asset.json";
 
-export const GRAM_ICON = gramIcon.url;
+export const GRAM_ICON = "/images/gram-icon.png";
+export const NOVA_ICON = novaIcon.url;
